@@ -32,6 +32,9 @@ def flatten_text_segments(text):
         elif isinstance(value, list):
             for item in value:
                 walk(item)
+        elif isinstance(value, dict):
+            for item in value.values():
+                walk(item)
 
     walk(text)
     return segments
@@ -87,6 +90,12 @@ def get_daily_mishnah_data():
         or get_nested_text_segments(data.get("hebrew"))
         or get_nested_text_segments(data.get("text"))
     )
+    english_segments = (
+        get_text_segments_from_versions(versions, "en")
+        or get_text_segments_from_versions(versions, "english")
+        or get_nested_text_segments(data.get("en"))
+        or get_nested_text_segments(data.get("english"))
+    )
 
     if not hebrew_segments:
         raise RuntimeError("Could not find Hebrew text in Sefaria response.")
@@ -98,6 +107,8 @@ def get_daily_mishnah_data():
         "url": mishnah_item.get("url"),
         "hebrew_segments": hebrew_segments,
         "hebrew_combined": " ".join(hebrew_segments),
+        "english_segments": english_segments,
+        "english_combined": " ".join(english_segments),
     }
 
 
