@@ -8,43 +8,38 @@ import { Button } from "@/components/ui/button";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
+    setLoading(true);
 
     try {
-      const res = await fetch("https://fastapi-template-app-entxr.ondigitalocean.app/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          app_name: null,
-        }),
-      });
+      const res = await fetch(
+        "https://fastapi-template-app-entxr.ondigitalocean.app/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.detail?.[0]?.msg || "Login failed");
-        return;
-      }
-
-      const token = await res.text();
-      login(token, { email });
-      navigate("/");
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
+      if (res.ok) {
+        const token = await res.text(); // adjust if backend returns JSON
+        login(token, { email });        // update auth store first
+        navigate("/");                  // then navigate home
       } else {
-        setError("Network error");
+        console.warn("Login failed, redirecting to homepage");
+        navigate("/", { state: { loginFailed: true } });
       }
+    } catch (err) {
+      console.warn("Network error during login, redirecting to homepage", err);
+      navigate("/", { state: { loginFailed: true } });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,7 +54,8 @@ export default function LoginPage() {
             type="email"
             placeholder="you@example.com"
             value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
             required
           />
         </div>
@@ -71,15 +67,19 @@ export default function LoginPage() {
             type="password"
             placeholder="********"
             value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
             required
           />
         </div>
 
-        {error && <p className="text-red-600">{error}</p>}
-
-        <Button type="submit" size="lg" className="w-full bg-blue-600 text-white hover:bg-blue-700">
-          Login
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full bg-blue-600 text-white hover:bg-blue-700"
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Login"}
         </Button>
       </form>
     </div>
