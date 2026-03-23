@@ -13,13 +13,6 @@ const AUDIO_PATHS = [
   '/audio/mishnah.mp3',
 ];
 
-type StcResponse = {
-  transcript?: string;
-  message?: string;
-  command?: string;
-  error?: string;
-};
-
 export default function MishnahYomiViewer() {
   const [hebrewText, setHebrewText] = useState<string>('');
   const [hebrewSegments, setHebrewSegments] = useState<string[]>([]);
@@ -30,9 +23,6 @@ export default function MishnahYomiViewer() {
   const [error, setError] = useState<string>('');
   const [simplifyLoading, setSimplifyLoading] = useState<boolean>(false);
   const [simplifiedText, setSimplifiedText] = useState<string>('');
-  const [stcLoading, setStcLoading] = useState<boolean>(false);
-  const [stcMessage, setStcMessage] = useState<string>('');
-  const [transcript, setTranscript] = useState<string>('');
 
   const { fontSize, lineHeight, dyslexiaFont, contrast } = useSettingsStore();
   const setAudioSrc = useAudioStore((s) => s.setSrc);
@@ -40,12 +30,14 @@ export default function MishnahYomiViewer() {
   // Load Hebrew text
   useEffect(() => {
     const fetchHebrewText = async () => {
+      setError('');
       try {
         const response = await fetch(`${API_BASE}/api/hebrew-text`);
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.details || data.error || 'Failed to fetch Hebrew text');
         }
+        setError('');
         setHebrewText(data.hebrew_text);
         setHebrewSegments(data.hebrew_segments || []);
         setEnglishText(data.english_text || '');
@@ -84,27 +76,6 @@ export default function MishnahYomiViewer() {
     })();
   }, []);
 
-  const startVoiceCommand = async () => {
-    setStcLoading(true);
-    setStcMessage('');
-    setTranscript('');
-    try {
-      const response = await fetch(`${API_BASE}/api/stc`, { method: 'POST' });
-      if (!response.ok) throw new Error('Failed to call voice command');
-      const data: StcResponse = await response.json();
-      setTranscript(data.transcript || '');
-      setStcMessage(data.message || data.error || '');
-      if (data.command) {
-        // Handle voice commands here
-        console.log('Voice command received:', data.command);
-      }
-    } catch (err) {
-      setStcMessage(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setStcLoading(false);
-    }
-  };
-
   const simplifyEnglishText = async () => {
     if (!englishText) return;
 
@@ -123,6 +94,7 @@ export default function MishnahYomiViewer() {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to simplify text');
       }
+      setError('');
       setSimplifiedText(data.simplified || '');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to simplify text');
@@ -178,7 +150,7 @@ export default function MishnahYomiViewer() {
       </h1>
       <div className="w-full max-w-2xl p-6 rounded-lg shadow-md" style={containerStyle}>
         {loading && <p style={textStyle}>Loading...</p>}
-        {error && <p className="text-red-500" style={textStyle}>Error: {error}</p>}
+        {error && !hebrewText && <p className="text-red-500" style={textStyle}>Error: {error}</p>}
         {hebrewText && (
           <div className="space-y-8">
             {/* Hebrew Section */}
@@ -238,18 +210,6 @@ export default function MishnahYomiViewer() {
                 )}
               </div>
             )}
-            <div className="mt-4">
-              {stcMessage && (
-                <p className="mt-3 text-sm" style={textStyle}>
-                  {stcMessage}
-                </p>
-              )}
-              {transcript && (
-                <p className="mt-2 text-sm italic" style={textStyle}>
-                  Transcript: {transcript}
-                </p>
-              )}
-            </div>
             {englishText && (
               <div className="mt-4">
               <button
