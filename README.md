@@ -1,4 +1,18 @@
 ## Project Overview
+1. Advanced Audio-Text Alignment System
+Location: allignment.py, main.py, and app.py (TTS endpoint)
+
+This feature generates synchronized text-to-speech audio where individual words and characters are precisely mapped to audio timestamps. The system first creates Hebrew audio with ElevenLabs, then translates to English and generates new audio with gTTS, mathematically remapping all timing alignments to maintain perfect synchronization. This enables real-time text highlighting during audio playback, making it exceptionally valuable for accessibility and language learning.
+
+2. Speech-to-Command (STC) Voice Control System
+Location: stc.py, asr.py, parser.py, and dispatcher.py
+
+A complete voice command pipeline that captures speech input, transcribes it using automatic speech recognition, parses natural language commands, and dispatches them to application handlers. The system can recognize commands like "play audio", "pause", or "next section" and execute them hands-free, providing an innovative accessibility layer for users who prefer voice interaction over traditional UI controls.
+
+3. AI-Powered Text Simplification with BART
+Location: Sentence_Simplify.py and app.py (simplify endpoint)
+
+Uses a fine-tuned BART transformer model (eilamc14/bart-base-text-simplification) to automatically simplify complex Hebrew Mishnah text into more accessible language. This machine learning approach preserves meaning while reducing cognitive load, making ancient religious texts more approachable for learners with different reading levels or cognitive processing needs. The implementation includes beam search and n-gram repetition prevention for high-quality simplifications.
 
 This is a dyslexia-friendly Mishnah learning application with the following key features:
 
