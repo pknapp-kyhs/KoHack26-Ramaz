@@ -239,15 +239,6 @@ export default function MishnahYomiViewer() {
               </div>
             )}
             <div className="mt-4">
-              <button
-                type="button"
-                onClick={startVoiceCommand}
-                disabled={stcLoading}
-                className="rounded-md bg-blue-600 px-4 py-2 text-white font-semibold disabled:bg-blue-300"
-                style={textStyle}
-              >
-                {stcLoading ? 'Listening...' : 'Start Voice Command'}
-              </button>
               {stcMessage && (
                 <p className="mt-3 text-sm" style={textStyle}>
                   {stcMessage}

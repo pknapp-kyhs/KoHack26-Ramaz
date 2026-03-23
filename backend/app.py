@@ -20,6 +20,37 @@ def translate_to_text(translator, text, src, dest):
         translated = asyncio.run(translated)
     return translated.text
 
+
+def translate_segments(translator, segments, src, dest):
+    if not segments:
+        return []
+
+    try:
+        translated = translator.translate(segments, src=src, dest=dest)
+        if inspect.isawaitable(translated):
+            translated = asyncio.run(translated)
+
+        if isinstance(translated, list):
+            texts = []
+            for item, original in zip(translated, segments):
+                text_value = getattr(item, "text", "") if item is not None else ""
+                texts.append(text_value or original)
+            if len(texts) == len(segments):
+                return texts
+    except Exception:
+        pass
+
+    translated_segments = []
+    for segment in segments:
+        try:
+            translated_segments.append(
+                translate_to_text(translator, segment, src=src, dest=dest)
+            )
+        except Exception:
+            translated_segments.append(segment)
+
+    return translated_segments
+
 @app.route('/api/send-update', methods=['POST'])
 def send_email_update():
     """
@@ -74,10 +105,10 @@ def get_hebrew_text():
         data = get_daily_mishnah_data()
         translator = Translator()
 
-        english_text = ""
-        english_segments = []
+        english_text = data.get("english_combined", "")
+        english_segments = data.get("english_segments", [])
 
-        if data.get("hebrew_combined"):
+        if not english_text and data.get("hebrew_combined"):
             english_text = translate_to_text(
                 translator,
                 data["hebrew_combined"],
@@ -85,17 +116,13 @@ def get_hebrew_text():
                 dest='en'
             )
 
-        for segment in data.get("hebrew_segments", []):
-            try:
-                translated_segment = translate_to_text(
-                    translator,
-                    segment,
-                    src='he',
-                    dest='en'
-                )
-            except Exception:
-                translated_segment = ""
-            english_segments.append(translated_segment)
+        if not english_segments:
+            english_segments = translate_segments(
+                translator,
+                data.get("hebrew_segments", []),
+                src='he',
+                dest='en'
+            )
 
         return jsonify({
             "hebrew_text": data["hebrew_combined"],
