@@ -1,4 +1,5 @@
 ## Project Overview
+
 1. Advanced Audio-Text Alignment System
 Location: allignment.py, main.py, and app.py (TTS endpoint)
 
@@ -188,6 +189,7 @@ This document provides a complete list of all source files in the KoHack26-Ramaz
 | `dyslexia-hebrew-extended.otf` | Hebrew-extended font optimized for dyslexic readers, supporting Hebrew text. |
 
 ## Miscellaneous Files (`/misc-root-files`)
+
 
 | File | Description |
 |------|-------------|
